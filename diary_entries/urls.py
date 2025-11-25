@@ -1,6 +1,10 @@
 from django.urls import path
-from .views import homepage_view
+from . import views
 
 urlpatterns = [
-    path('', homepage_view, name='homepage'),
+    path('', views.homepage, name='homepage'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('entries/', views.entries_page, name='entries'),
+    path('entries/delete/<int:entry_id>/', views.delete_entry, name='delete_entry'),
+    path('list/', views.DiaryEntryList.as_view(), name='diaryentry_list'),
 ]
