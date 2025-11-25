@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Gentle Journal{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="dashboard-header text-center">
+    <div class="container">
+        <h1 class="mb-3">
+            <i class="bi bi-sun"></i> Good {{ greeting }}, {{ user.first_name|default:user.username }}!
+        </h1>
+        <p class="lead mb-0">How are you feeling today? Take a moment to check in with yourself.</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Quick Entry Form -->
+        <div class="col-lg-8 mb-4">
+            <div class="card quick-entry-card">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h4 class="mb-0">
+                        <i class="bi bi-lightning-fill text-warning"></i>
+                        Quick Entry
+                    </h4>
+                    <small class="text-muted">Log your current state quickly and easily</small>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.pain_level.id_for_label }}" class="form-label">
+                                <i class="bi bi-thermometer-half"></i> Pain Level (0-10)
+                            </label>
+                            {{ form.pain_level }}
+                            <div class="form-text">0 = No pain, 10 = Severe pain</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.mood.id_for_label }}" class="form-label">
+                                <i class="bi bi-emoji-smile"></i> Current Mood
+                            </label>
+                            {{ form.mood }}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">
+                                <i class="bi bi-journal-text"></i> Quick Note
+                            </label>
+                            {{ form.content }}
+                        </div>
+                        
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-plus-circle"></i> Save Entry
+                            </button>
+                            <a href="{% url 'entries' %}" class="btn btn-outline-secondary btn-lg ms-2">
+                                <i class="bi bi-journal-plus"></i> Detailed Entry
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="col-lg-4 mb-4">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="stats-card">
+                        <div class="stat-number">{{ recent_entries|length }}</div>
+                        <div class="text-muted">Recent Entries</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stats-card">
+                        <div class="stat-number">7</div>
+                        <div class="text-muted">Days Tracked</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <a href="{% url 'entries' %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-journal-text"></i> View All Entries
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Entries -->
+    {% if recent_entries %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card recent-entries-card">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h4 class="mb-0">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Entries
+                    </h4>
+                    <small class="text-muted">Your last 3 entries</small>
+                </div>
+                <div class="card-body">
+                    {% for entry in recent_entries %}
+                    <div class="entry-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    {% if entry.pain_level <= 3 %}
+                                        <span class="pain-level-badge pain-low">{{ entry.pain_level }}</span>
+                                    {% elif entry.pain_level <= 6 %}
+                                        <span class="pain-level-badge pain-medium">{{ entry.pain_level }}</span>
+                                    {% else %}
+                                        <span class="pain-level-badge pain-high">{{ entry.pain_level }}</span>
+                                    {% endif %}
+                                    <div class="ms-3">
+                                        <h6 class="mb-1">{{ entry.mood|title }}</h6>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar3"></i>
+                                            {{ entry.created_at|date:"M d, Y H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <p class="mb-0 text-muted">{{ entry.content|truncatewords:15 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'entries' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> View All Entries
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card recent-entries-card text-center">
+                <div class="card-body py-5">
+                    <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
+                    <h5 class="text-muted">No entries yet</h5>
+                    <p class="text-muted">Start your wellness journey by creating your first entry above.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add some interactivity
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus on pain level input
+    const painInput = document.querySelector('input[name="pain_level"]');
+    if (painInput) {
+        painInput.focus();
+    }
+    
+    // Add real-time validation for pain level
+    if (painInput) {
+        painInput.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            if (value < 0) this.value = 0;
+            if (value > 10) this.value = 10;
+        });
+    }
+});
+</script>
+{% endblock %}
