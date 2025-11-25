@@ -1,3 +1,4 @@
 .venv/
 eny.py
 __pycache__/
+staticfiles/
